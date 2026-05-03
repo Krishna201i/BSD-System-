@@ -19,6 +19,45 @@ const analyzeReportLoading = document.getElementById("analyze-report-loading");
 const reportSuccessBanner = document.getElementById("report-success-banner");
 const reportSummaryEl = document.getElementById("report-summary");
 
+// ── Model Stats Banner ──────────────────────────────────────────────────────
+const modelStatsNameEl = document.getElementById("model-stats-name");
+const statAccuracyEl   = document.getElementById("stat-accuracy-val");
+const statRocEl        = document.getElementById("stat-roc-val");
+const statF1El         = document.getElementById("stat-f1-val");
+
+function animateCounter(el, target, suffix, decimals = 1, durationMs = 900) {
+  if (!el) return;
+  const start = performance.now();
+  function step(now) {
+    const progress = Math.min((now - start) / durationMs, 1);
+    const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+    el.textContent = (eased * target).toFixed(decimals) + suffix;
+    if (progress < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+async function fetchModelInfo() {
+  try {
+    const res = await fetch("/model-info");
+    if (!res.ok) return;
+    const data = await res.json();
+    if (modelStatsNameEl) {
+      modelStatsNameEl.textContent = `Active Model: ${data.model_name}`;
+    }
+    animateCounter(statAccuracyEl, (data.test_accuracy || 0) * 100, "%");
+    animateCounter(statRocEl,      (data.roc_auc       || 0) * 100, "%");
+    animateCounter(statF1El,       (data.test_f1       || 0) * 100, "%");
+  } catch (_) {
+    if (modelStatsNameEl) modelStatsNameEl.textContent = "Model offline";
+  }
+}
+
+// Fetch on load (only if banner exists on this page)
+if (modelStatsNameEl) fetchModelInfo();
+// ─────────────────────────────────────────────────────────────────────────────
+
+
 const requiredFields = [...document.querySelectorAll("[data-required='true']")];
 const autofillFieldIds = ["age", "gender", "hypertension", "heart_disease", "avg_glucose_level", "bmi", "smoking_status"];
 
@@ -444,40 +483,46 @@ autofillFieldIds.forEach((fieldId) => {
   });
 });
 
-reportDropzoneEl.addEventListener("click", openFilePicker);
-reportDropzoneEl.addEventListener("keydown", (event) => {
-  if (event.key === "Enter" || event.key === " ") {
+if (reportDropzoneEl) {
+  reportDropzoneEl.addEventListener("click", openFilePicker);
+  reportDropzoneEl.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      openFilePicker();
+    }
+  });
+
+  reportDropzoneEl.addEventListener("dragover", (event) => {
     event.preventDefault();
-    openFilePicker();
-  }
-});
+    reportDropzoneEl.classList.add("dragover");
+  });
 
-reportDropzoneEl.addEventListener("dragover", (event) => {
-  event.preventDefault();
-  reportDropzoneEl.classList.add("dragover");
-});
+  reportDropzoneEl.addEventListener("dragleave", () => {
+    reportDropzoneEl.classList.remove("dragover");
+  });
 
-reportDropzoneEl.addEventListener("dragleave", () => {
-  reportDropzoneEl.classList.remove("dragover");
-});
+  reportDropzoneEl.addEventListener("drop", (event) => {
+    event.preventDefault();
+    reportDropzoneEl.classList.remove("dragover");
+    const [file] = event.dataTransfer.files || [];
+    if (file) {
+      setSelectedReportFile(file);
+    }
+  });
+}
 
-reportDropzoneEl.addEventListener("drop", (event) => {
-  event.preventDefault();
-  reportDropzoneEl.classList.remove("dragover");
-  const [file] = event.dataTransfer.files || [];
-  if (file) {
-    setSelectedReportFile(file);
-  }
-});
+if (reportFileInputEl) {
+  reportFileInputEl.addEventListener("change", () => {
+    const [file] = reportFileInputEl.files || [];
+    if (file) {
+      setSelectedReportFile(file);
+    }
+  });
+}
 
-reportFileInputEl.addEventListener("change", () => {
-  const [file] = reportFileInputEl.files || [];
-  if (file) {
-    setSelectedReportFile(file);
-  }
-});
-
-analyzeReportBtn.addEventListener("click", analyzeSelectedReport);
+if (analyzeReportBtn) {
+  analyzeReportBtn.addEventListener("click", analyzeSelectedReport);
+}
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();

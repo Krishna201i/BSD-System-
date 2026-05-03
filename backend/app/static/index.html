@@ -43,9 +43,33 @@
           </div>
         </div>
         <a class="nav-link" href="/">Home</a>
-        <a class="nav-link" href="/report">🤖 AI Report Analyzer</a>
+        <a class="nav-link" href="/report">&#x1F916; AI Report Analyzer</a>
       </div>
     </header>
+
+    <!-- Live Model Stats Banner -->
+    <div id="model-stats-banner" class="model-stats-banner" aria-label="Model performance statistics">
+      <div class="model-stats-inner">
+        <div class="model-stats-label">
+          <span class="model-stats-dot"></span>
+          <strong id="model-stats-name">Loading model&hellip;</strong>
+        </div>
+        <div class="model-stats-chips">
+          <span class="stat-chip" id="stat-accuracy">
+            <span class="stat-chip-label">Test Accuracy</span>
+            <strong class="stat-chip-val" id="stat-accuracy-val">&mdash;</strong>
+          </span>
+          <span class="stat-chip" id="stat-roc">
+            <span class="stat-chip-label">ROC AUC</span>
+            <strong class="stat-chip-val" id="stat-roc-val">&mdash;</strong>
+          </span>
+          <span class="stat-chip" id="stat-f1">
+            <span class="stat-chip-label">F1 Score</span>
+            <strong class="stat-chip-val" id="stat-f1-val">&mdash;</strong>
+          </span>
+        </div>
+      </div>
+    </div>
 
     <main class="page-shell">
       <section class="predict-card">
