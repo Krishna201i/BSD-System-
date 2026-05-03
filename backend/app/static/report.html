@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Medical Report Analyzer — NeuroScan AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/styles.css" />
+    <script defer src="/static/app.js"></script>
+  </head>
+  <body>
+    <header class="top-nav">
+      <div class="nav-inner">
+        <div class="brand-wrap">
+          <svg class="brand-logo" viewBox="0 0 64 64" aria-hidden="true">
+            <defs>
+              <linearGradient id="brainBlue" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#3b82f6" />
+                <stop offset="100%" stop-color="#2563eb" />
+              </linearGradient>
+            </defs>
+            <path
+              d="M21 13c-5.5 0-10 4.5-10 10 0 2.5.9 4.7 2.3 6.4C10.1 31.7 8 35.3 8 39.5 8 46.4 13.6 52 20.5 52c2.6 0 5-.8 7-2.2 1.4 1.4 3.3 2.2 5.5 2.2s4.1-.9 5.5-2.3c2 1.4 4.5 2.3 7.1 2.3C52.4 52 58 46.4 58 39.5c0-4.2-2.1-7.8-5.3-10.1 1.4-1.7 2.3-3.9 2.3-6.4 0-5.5-4.5-10-10-10-2.2 0-4.2.7-5.8 1.9C37.9 12 35.6 10 33 10s-4.9 2-6.2 4.9C25.2 13.7 23.2 13 21 13z"
+              fill="url(#brainBlue)"
+            />
+            <path
+              d="M16 34h8l3-7 5 16 4-10h6"
+              fill="none"
+              stroke="#ffffff"
+              stroke-width="3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <div>
+            <h1>NeuroScan AI</h1>
+            <p>Smart Stroke Risk Detection</p>
+          </div>
+        </div>
+        <div>
+          <a class="nav-link" href="/">Home</a>
+          <a class="nav-link" href="/report">🤖 AI Report Analyzer</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="page-shell" style="display:flex;flex-direction:column;align-items:center;gap:18px;">
+      <section style="text-align:center;max-width:880px;margin-top:28px;">
+        <h2 style="font-size:1.6rem;margin-bottom:6px;">AI Medical Report Analyzer</h2>
+        <p style="color:var(--muted);margin-bottom:10px;">Upload your medical report and let AI extract your health data and predict stroke risk automatically</p>
+        <div style="display:inline-block;padding:6px 10px;border-radius:999px;background:#eef6ff;color:#0f4c81;font-weight:700">🔒 Your data is not stored</div>
+      </section>
+
+      <section class="predict-card" style="max-width:600px;width:100%;">
+        <div style="padding:20px;">
+          <div id="report-dropzone" class="report-dropzone" tabindex="0" role="button" aria-label="Upload medical report">
+            <input
+              id="report-file-input"
+              class="report-file-input"
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+            />
+            <div id="report-dropzone-copy" class="report-dropzone-copy">
+              <div style="font-size:2.4rem">📄</div>
+              <strong id="dropzone-text">Drag & drop your report here</strong>
+              <span id="dropzone-sub">Supports PDF, JPG, PNG</span>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;gap:12px;flex-wrap:wrap;">
+            <button id="analyze-report-btn" type="button" class="submit-btn" style="flex:1;min-height:48px;border-radius:999px;background:#94a3b8;" disabled>
+              <span id="analyze-report-text">🔍 Analyze with AI</span>
+              <span id="analyze-report-loading" class="btn-loading hidden">
+                <span class="btn-spinner btn-spinner-blue" aria-hidden="true"></span>
+                <span>AI is reading your report...</span>
+              </span>
+            </button>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;gap:12px;flex-wrap:wrap;">
+            <p id="report-file-name" class="report-file-name">No file selected</p>
+            <div id="file-preview-area" style="display:none;align-items:center;gap:10px;"></div>
+          </div>
+
+          <div id="report-success-banner" class="report-success-banner hidden" role="status" aria-live="polite" style="margin-top:12px;">
+            ✅ Report analyzed! Fields extracted below.
+          </div>
+
+          <div id="report-summary" class="report-summary hidden" style="margin-top:12px;"></div>
+        </div>
+      </section>
+
+      <section id="results-wrapper" style="max-width:880px;width:100%;display:none;gap:16px;">
+        <div style="display:grid;grid-template-columns:1fr 360px;gap:16px;">
+          <div class="feature-card" id="extracted-card">
+            <h3>📋 Extracted Information</h3>
+            <div id="extracted-table" style="margin-top:12px;"> 
+              <!-- renderReportSummary will populate report-summary; keep a table fallback -->
+              <div id="extracted-fallback"></div>
+            </div>
+          </div>
+
+          <div class="feature-card" id="prediction-card">
+            <h3>🧠 Stroke Risk Prediction</h3>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:10px;">
+              <div class="gauge-wrap">
+                <div id="risk-gauge" class="risk-gauge" style="--gauge-value:0;--gauge-color:#10b981;">
+                  <div class="gauge-center">
+                    <strong id="risk-percentage">0%</strong>
+                    <span>Risk Level</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style="width:100%">
+                <div id="risk-badge" class="risk-badge">Low Risk</div>
+                <p id="risk-message" class="risk-message" style="margin-top:8px;"></p>
+                <div style="margin-top:10px;">
+                  <h4>Top Contributing Factors</h4>
+                  <div id="factor-list" class="factor-list" style="margin-top:8px;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:12px;justify-content:center;margin-top:12px;">
+          <a id="edit-resubmit" class="outline-btn" href="/" style="text-decoration:none;display:inline-flex;align-items:center;gap:8px;">✏️ Edit & Resubmit</a>
+          <button id="analyze-another" class="outline-btn" type="button">🔄 Analyze Another Report</button>
+        </div>
+      </section>
+
+      <footer class="page-footer" style="max-width:880px;width:100%;text-align:center;margin-top:22px;">
+        <p>For educational purposes only. Not a substitute for medical advice.</p>
+      </footer>
+
+    <script>
+    // small helpers: show preview and wire reset button
+      document.addEventListener('DOMContentLoaded', function () {
+    const fileInput = document.getElementById('report-file-input');
+    const previewArea = document.getElementById('file-preview-area');
+    const analyzeBtn = document.getElementById('analyze-report-btn');
+    const reportName = document.getElementById('report-file-name');
+    const resultsWrapper = document.getElementById('results-wrapper');
+    const analyzeAnother = document.getElementById('analyze-another');
+    const dropzoneEl = document.getElementById('report-dropzone');
+    const dropText = document.getElementById('dropzone-text');
+    const dropSub = document.getElementById('dropzone-sub');
+      function renderPreview(file) {
+        // show filename and change link inside dropzone
+        const dropCopy = document.getElementById('report-dropzone-copy');
+        const nameSpan = document.createElement('div');
+        nameSpan.style.display = 'flex';
+        nameSpan.style.alignItems = 'center';
+        nameSpan.style.gap = '8px';
+        const ok = document.createElement('span'); ok.textContent = '✅';
+        const name = document.createElement('strong');
+        name.textContent = file.name + ' (' + Math.round(file.size/1024) + ' KB)';
+        const change = document.createElement('a');
+        change.href = '#';
+        change.textContent = '× Change';
+        change.style.marginLeft = '12px';
+        change.addEventListener('click', (e) => {
+          e.preventDefault();
+          fileInput.click();
+        });
+
+        dropCopy.innerHTML = '';
+        dropCopy.appendChild(ok);
+        dropCopy.appendChild(name);
+        dropCopy.appendChild(change);
+      }
+
+      fileInput.addEventListener('change', () => {
+        const [file] = fileInput.files || [];
+        if (file) {
+          if (window.setSelectedReportFile) window.setSelectedReportFile(file);
+          reportName.textContent = file.name + ' (' + Math.round(file.size/1024) + ' KB)';
+          renderPreview(file);
+          // enable analyze button and set vivid blue
+          analyzeBtn.disabled = false;
+          analyzeBtn.style.background = '#2563eb';
+          analyzeBtn.style.color = '#ffffff';
+        }
+      });
+
+      analyzeBtn.disabled = true;
+
+      // make the dropzone open file picker on click / keyboard
+      dropzoneEl.addEventListener('click', (e) => {
+        e.preventDefault();
+        fileInput.click();
+      });
+      dropzoneEl.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          fileInput.click();
+        }
+      });
+
+      // show results wrapper when report summary or result-card becomes visible
+      const observer = new MutationObserver(() => {
+        const success = !document.getElementById('report-success-banner')?.classList.contains('hidden');
+        const resultCardVisible = !document.getElementById('result-card')?.classList.contains('hidden');
+        if (success || resultCardVisible) {
+          resultsWrapper.style.display = 'block';
+        }
+      });
+      observer.observe(document.body, { attributes: false, childList: true, subtree: true });
+
+      analyzeAnother.addEventListener('click', () => {
+        if (window.setSelectedReportFile) window.setSelectedReportFile(null);
+        fileInput.value = '';
+        reportName.textContent = 'No file selected';
+        previewArea.innerHTML = '';
+        resultsWrapper.style.display = 'none';
+        document.getElementById('report-success-banner')?.classList.add('hidden');
+        const rc = document.getElementById('result-card'); if (rc) rc.classList.add('hidden');
+      });
+    });
+    </script>
+  </body>
+</html>

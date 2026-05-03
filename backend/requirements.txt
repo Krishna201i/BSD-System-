@@ -6,3 +6,7 @@ scikit-learn==1.5.2
 imbalanced-learn==0.12.4
 xgboost==2.1.4
 joblib==1.4.2
+anthropic
+pymupdf
+python-dotenv
+python-multipart

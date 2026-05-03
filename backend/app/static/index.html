@@ -3,121 +3,216 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Brain Stroke Risk Detector</title>
+    <title>NeuroScan AI - Smart Stroke Risk Detection</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="/static/styles.css" />
     <script defer src="/static/app.js"></script>
   </head>
   <body>
-    <main class="container">
-      <header class="hero">
-        <div>
-          <h1>Brain Stroke Detection</h1>
-          <p>AI-powered clinical risk screening for stroke probability.</p>
+    <header class="top-nav">
+      <div class="nav-inner">
+        <div class="brand-wrap">
+          <svg class="brand-logo" viewBox="0 0 64 64" aria-hidden="true">
+            <defs>
+              <linearGradient id="brainBlue" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#3b82f6" />
+                <stop offset="100%" stop-color="#2563eb" />
+              </linearGradient>
+            </defs>
+            <path
+              d="M21 13c-5.5 0-10 4.5-10 10 0 2.5.9 4.7 2.3 6.4C10.1 31.7 8 35.3 8 39.5 8 46.4 13.6 52 20.5 52c2.6 0 5-.8 7-2.2 1.4 1.4 3.3 2.2 5.5 2.2s4.1-.9 5.5-2.3c2 1.4 4.5 2.3 7.1 2.3C52.4 52 58 46.4 58 39.5c0-4.2-2.1-7.8-5.3-10.1 1.4-1.7 2.3-3.9 2.3-6.4 0-5.5-4.5-10-10-10-2.2 0-4.2.7-5.8 1.9C37.9 12 35.6 10 33 10s-4.9 2-6.2 4.9C25.2 13.7 23.2 13 21 13z"
+              fill="url(#brainBlue)"
+            />
+            <path
+              d="M16 34h8l3-7 5 16 4-10h6"
+              fill="none"
+              stroke="#ffffff"
+              stroke-width="3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <div>
+            <h1>NeuroScan AI</h1>
+            <p>Smart Stroke Risk Detection</p>
+          </div>
         </div>
-        <a class="secondary-btn" href="/dashboard">View Dashboard</a>
-      </header>
+        <a class="nav-link" href="/">Home</a>
+        <a class="nav-link" href="/report">🤖 AI Report Analyzer</a>
+      </div>
+    </header>
 
-      <section class="card">
-        <h2>Patient Profile</h2>
-        <form id="prediction-form" class="form-grid">
-          <label>
-            Age
-            <input type="number" id="age" min="0" max="130" step="0.1" required />
-          </label>
+    <main class="page-shell">
+      <section class="predict-card">
+        <div class="card-progress">
+          <div id="form-progress-bar" class="card-progress-bar"></div>
+        </div>
 
-          <label>
-            Gender
-            <select id="gender" required>
-              <option value="Female">Female</option>
-              <option value="Male">Male</option>
-              <option value="Other">Other</option>
-            </select>
-          </label>
+        <div class="card-head">
+          <h2>Patient Risk Assessment</h2>
+          <p>Fill in the details below to estimate stroke risk.</p>
+        </div>
 
-          <label>
-            Hypertension
-            <select id="hypertension" required>
-              <option value="No">No</option>
-              <option value="Yes">Yes</option>
-            </select>
-          </label>
+        <!-- Report analyzer moved to /report -->
 
-          <label>
-            Heart Disease
-            <select id="heart_disease" required>
-              <option value="No">No</option>
-              <option value="Yes">Yes</option>
-            </select>
-          </label>
+        <form id="prediction-form" novalidate>
+          <section class="form-section">
+            <h3 class="section-pill">&#128100; Patient Info</h3>
+            <div class="field-grid">
+              <label class="field" for="age">
+                <span class="field-label">Age</span>
+                <input type="number" id="age" min="0" max="130" step="1" inputmode="numeric" placeholder="Not found in report" data-required="true" required />
+              </label>
 
-          <label>
-            Ever Married
-            <select id="ever_married" required>
-              <option value="No">No</option>
-              <option value="Yes">Yes</option>
-            </select>
-          </label>
+              <label class="field" for="gender">
+                <span class="field-label">Gender</span>
+                <select id="gender" data-required="true" required>
+                  <option value="">Select</option>
+                  <option value="Female">Female</option>
+                  <option value="Male">Male</option>
+                  <option value="Other">Other</option>
+                </select>
+              </label>
 
-          <label>
-            Work Type
-            <select id="work_type" required>
-              <option value="Private">Private</option>
-              <option value="Self-employed">Self-employed</option>
-              <option value="Govt_job">Govt_job</option>
-              <option value="children">children</option>
-              <option value="Never_worked">Never_worked</option>
-            </select>
-          </label>
+              <label class="field" for="ever_married">
+                <span class="field-label">Ever Married</span>
+                <select id="ever_married" data-required="true" required>
+                  <option value="">Select</option>
+                  <option value="No">No</option>
+                  <option value="Yes">Yes</option>
+                </select>
+              </label>
 
-          <label>
-            Residence Type
-            <select id="residence_type" required>
-              <option value="Urban">Urban</option>
-              <option value="Rural">Rural</option>
-            </select>
-          </label>
+              <label class="field" for="residence_type">
+                <span class="field-label">Residence Type</span>
+                <select id="residence_type" data-required="true" required>
+                  <option value="">Select</option>
+                  <option value="Urban">Urban</option>
+                  <option value="Rural">Rural</option>
+                </select>
+              </label>
+            </div>
+          </section>
 
-          <label>
-            Avg Glucose Level
-            <input type="number" id="avg_glucose_level" min="0" step="0.01" required />
-          </label>
+          <section class="form-section">
+            <h3 class="section-pill">&#127973; Medical History</h3>
+            <div class="field-grid">
+              <label class="field" for="hypertension">
+                <span class="field-label">Hypertension</span>
+                <select id="hypertension" data-required="true" required>
+                  <option value="">Select</option>
+                  <option value="No">No</option>
+                  <option value="Yes">Yes</option>
+                </select>
+              </label>
 
-          <label>
-            BMI (optional)
-            <input type="number" id="bmi" min="0" step="0.1" />
-          </label>
+              <label class="field" for="heart_disease">
+                <span class="field-label">Heart Disease</span>
+                <select id="heart_disease" data-required="true" required>
+                  <option value="">Select</option>
+                  <option value="No">No</option>
+                  <option value="Yes">Yes</option>
+                </select>
+              </label>
 
-          <label>
-            Smoking Status
-            <select id="smoking_status" required>
-              <option value="never smoked">never smoked</option>
-              <option value="formerly smoked">formerly smoked</option>
-              <option value="smokes">smokes</option>
-              <option value="Unknown">Unknown</option>
-            </select>
-          </label>
+              <label class="field" for="avg_glucose_level">
+                <span class="field-label">Average Glucose Level</span>
+                <input
+                  type="number"
+                  id="avg_glucose_level"
+                  min="0"
+                  step="0.01"
+                  inputmode="decimal"
+                  placeholder="Not found in report"
+                  data-required="true"
+                  required
+                />
+              </label>
 
-          <button type="submit" class="primary-btn">Predict Stroke Risk</button>
+              <label class="field" for="bmi">
+                <span class="field-label">BMI (Optional)</span>
+                <input type="number" id="bmi" min="0" step="0.1" />
+              </label>
+            </div>
+          </section>
+
+          <section class="form-section">
+            <h3 class="section-pill">&#127807; Lifestyle</h3>
+            <div class="field-grid">
+              <label class="field" for="work_type">
+                <span class="field-label">Work Type</span>
+                <select id="work_type" data-required="true" required>
+                  <option value="">Select</option>
+                  <option value="Private">Private</option>
+                  <option value="Self-employed">Self-employed</option>
+                  <option value="Govt_job">Govt Job</option>
+                  <option value="children">Children</option>
+                  <option value="Never_worked">Never Worked</option>
+                </select>
+              </label>
+
+              <label class="field" for="smoking_status">
+                <span class="field-label">Smoking Status</span>
+                <select id="smoking_status" data-required="true" required>
+                  <option value="">Select</option>
+                  <option value="never smoked">Never Smoked</option>
+                  <option value="formerly smoked">Formerly Smoked</option>
+                  <option value="smokes">Smokes</option>
+                  <option value="Unknown">Unknown</option>
+                </select>
+              </label>
+            </div>
+          </section>
+
+          <button id="submit-btn" type="submit" class="submit-btn">
+            <span id="submit-text">Run Stroke Risk Analysis</span>
+            <span id="submit-loading" class="btn-loading hidden">
+              <span class="btn-spinner" aria-hidden="true"></span>
+              <span>Analyzing your data...</span>
+            </span>
+          </button>
         </form>
-
-        <div id="loading" class="loading hidden">
-          <div class="spinner"></div>
-          <span>Analyzing patient data...</span>
-        </div>
       </section>
 
-      <section id="result-card" class="card hidden">
-        <h2>Prediction Result</h2>
-        <p class="result-line">
-          Risk Probability: <strong id="risk-percentage">0.00%</strong>
-        </p>
-        <span id="risk-badge" class="badge">Low Risk</span>
+      <section id="result-card" class="result-card hidden" aria-live="polite">
+        <div class="result-head">
+          <h3>Risk Assessment Result</h3>
+          <span id="risk-badge" class="risk-badge">Low Risk</span>
+        </div>
 
-        <div class="factors">
-          <h3>Key Contributing Factors</h3>
-          <ul id="factor-list"></ul>
+        <div class="result-main">
+          <div class="gauge-wrap">
+            <div id="risk-gauge" class="risk-gauge" style="--gauge-value: 0; --gauge-color: #10b981;">
+              <div class="gauge-center">
+                <strong id="risk-percentage">0%</strong>
+                <span>Risk Level</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="result-copy">
+            <p id="risk-message" class="risk-message"></p>
+            <div class="factor-panel">
+              <h4>Key Contributing Factors</h4>
+              <div id="factor-list" class="factor-list"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tips-panel">
+          <h4>What you can do</h4>
+          <ul id="tips-list"></ul>
         </div>
       </section>
     </main>
+
+    <footer class="page-footer">
+      <p>For educational purposes only. Not a substitute for medical advice.</p>
+    </footer>
   </body>
 </html>

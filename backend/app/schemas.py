@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field, field_validator
 
 
 class PatientData(BaseModel):
-    age: float = Field(..., ge=0, le=130)
+    age: int = Field(..., ge=0, le=130)
     gender: str = Field(..., min_length=1)
     hypertension: int | bool | str
     heart_disease: int | bool | str
@@ -75,4 +75,20 @@ class FeatureImportanceItem(BaseModel):
 class FeatureImportanceResponse(BaseModel):
     feature_importance: list[FeatureImportanceItem]
     model_metrics: dict[str, float]
+
+
+class ReportExtractedFields(BaseModel):
+    age: int | None = None
+    gender: str | None = None
+    hypertension: str | None = None
+    heart_disease: str | None = None
+    avg_glucose_level: float | None = None
+    bmi: float | None = None
+    smoking_status: str | None = None
+
+
+class ReportAnalysisResponse(BaseModel):
+    extracted_fields: ReportExtractedFields
+    prediction: PredictionResponse | None = None
+    missing_fields: list[str]
 

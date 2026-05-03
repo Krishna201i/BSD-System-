@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import xgboost as xgb
 from imblearn.combine import SMOTETomek
-from sklearn.metrics import f1_score, precision_score, recall_score, roc_auc_score
+from sklearn.metrics import f1_score, precision_recall_curve, precision_score, recall_score, roc_auc_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils.class_weight import compute_class_weight
@@ -20,6 +20,9 @@ DEFAULT_MODEL_PATH = BASE_DIR / "models" / "stroke_xgboost.pkl"
 
 TARGET_COLUMN = "stroke"
 DEFAULT_RISK_THRESHOLD = 0.3
+THRESHOLD_SEARCH_MIN = 0.25
+THRESHOLD_SEARCH_MAX = 0.45
+RECALL_FLOOR = 0.70
 DISPLAY_NAME_MAP = {
     "gender": "Gender",
     "age": "Age",
@@ -108,7 +111,61 @@ def train_and_save_model(
     model.fit(X_train_balanced, y_train_balanced, sample_weight=sample_weights)
 
     y_prob = model.predict_proba(X_test)[:, 1]
-    y_pred = (y_prob >= DEFAULT_RISK_THRESHOLD).astype(int)
+
+    _, _, curve_thresholds = precision_recall_curve(y_test, y_prob)
+    threshold_candidates = sorted(
+        {
+            float(threshold)
+            for threshold in curve_thresholds
+            if THRESHOLD_SEARCH_MIN <= float(threshold) <= THRESHOLD_SEARCH_MAX
+        }
+    )
+    if not threshold_candidates:
+        threshold_candidates = [DEFAULT_RISK_THRESHOLD]
+
+    best_threshold = threshold_candidates[0]
+    best_precision = 0.0
+    best_recall = 0.0
+    best_f1 = -1.0
+    found_with_recall_floor = False
+
+    for threshold in threshold_candidates:
+        y_pred_candidate = (y_prob >= threshold).astype(int)
+        precision = float(precision_score(y_test, y_pred_candidate, zero_division=0))
+        recall = float(recall_score(y_test, y_pred_candidate, zero_division=0))
+        f1 = float(f1_score(y_test, y_pred_candidate, zero_division=0))
+
+        if recall < RECALL_FLOOR:
+            continue
+
+        found_with_recall_floor = True
+        if (
+            f1 > best_f1
+            or (f1 == best_f1 and precision > best_precision)
+            or (f1 == best_f1 and precision == best_precision and recall > best_recall)
+        ):
+            best_threshold = threshold
+            best_precision = precision
+            best_recall = recall
+            best_f1 = f1
+
+    if not found_with_recall_floor:
+        for threshold in threshold_candidates:
+            y_pred_candidate = (y_prob >= threshold).astype(int)
+            precision = float(precision_score(y_test, y_pred_candidate, zero_division=0))
+            recall = float(recall_score(y_test, y_pred_candidate, zero_division=0))
+            f1 = float(f1_score(y_test, y_pred_candidate, zero_division=0))
+            if (
+                f1 > best_f1
+                or (f1 == best_f1 and precision > best_precision)
+                or (f1 == best_f1 and precision == best_precision and recall > best_recall)
+            ):
+                best_threshold = threshold
+                best_precision = precision
+                best_recall = recall
+                best_f1 = f1
+
+    y_pred = (y_prob >= best_threshold).astype(int)
 
     artifact: dict[str, Any] = {
         "model": model,
@@ -125,7 +182,7 @@ def train_and_save_model(
             "precision": float(precision_score(y_test, y_pred, zero_division=0)),
             "recall": float(recall_score(y_test, y_pred, zero_division=0)),
             "f1_score": float(f1_score(y_test, y_pred, zero_division=0)),
-            "decision_threshold": float(DEFAULT_RISK_THRESHOLD),
+            "decision_threshold": float(best_threshold),
         },
     }
 
@@ -156,6 +213,9 @@ class StrokeModelService:
         self.bmi_median = float(artifact["bmi_median"])
         self.feature_importance = artifact["feature_importance"]
         self.metrics = artifact.get("metrics", {})
+        saved_threshold = self.metrics.get("decision_threshold")
+        if isinstance(saved_threshold, (int, float)):
+            self.risk_threshold = float(saved_threshold)
         self.loaded = True
 
     def _encode_categorical(self, column: str, value: str) -> int:
