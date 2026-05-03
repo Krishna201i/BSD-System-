@@ -212,7 +212,10 @@ stroke_service = StrokeModelService()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    stroke_service.load()
+    try:
+        stroke_service.load()
+    except Exception as e:
+        logging.error(f"Failed to load stroke model on startup: {e}", exc_info=True)
     yield
 
 
