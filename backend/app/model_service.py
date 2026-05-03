@@ -7,10 +7,11 @@ import joblib
 import numpy as np
 import pandas as pd
 import xgboost as xgb
-from imblearn.over_sampling import SMOTE
-from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, roc_auc_score
+from imblearn.combine import SMOTETomek
+from sklearn.metrics import f1_score, precision_score, recall_score, roc_auc_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
+from sklearn.utils.class_weight import compute_class_weight
 from xgboost import XGBClassifier
 
 BASE_DIR = Path(__file__).resolve().parents[1]
@@ -18,6 +19,7 @@ DEFAULT_DATASET_PATH = BASE_DIR / "data" / "healthcare-dataset-stroke-data.csv"
 DEFAULT_MODEL_PATH = BASE_DIR / "models" / "stroke_xgboost.pkl"
 
 TARGET_COLUMN = "stroke"
+DEFAULT_RISK_THRESHOLD = 0.3
 DISPLAY_NAME_MAP = {
     "gender": "Gender",
     "age": "Age",
@@ -78,25 +80,35 @@ def train_and_save_model(
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, stratify=y, random_state=42
     )
-    smote = SMOTE(random_state=42)
-    X_train_balanced, y_train_balanced = smote.fit_resample(X_train, y_train)
+    smote_tomek = SMOTETomek(random_state=42)
+    X_train_balanced, y_train_balanced = smote_tomek.fit_resample(X_train, y_train)
+
+    classes = np.array([0, 1], dtype=int)
+    class_weights = compute_class_weight(class_weight="balanced", classes=classes, y=y_train_balanced)
+    class_weight_map = {int(cls): float(weight) for cls, weight in zip(classes, class_weights, strict=True)}
+    sample_weights = np.array([class_weight_map[int(label)] for label in y_train_balanced], dtype=float)
+
+    negatives = int((y_train == 0).sum())
+    positives = int((y_train == 1).sum())
+    scale_pos_weight = float(negatives / positives) if positives else 1.0
 
     model = XGBClassifier(
         objective="binary:logistic",
         eval_metric="logloss",
-        n_estimators=400,
+        n_estimators=300,
         learning_rate=0.05,
-        max_depth=4,
-        min_child_weight=2,
-        subsample=0.9,
+        max_depth=5,
+        min_child_weight=1,
+        subsample=0.8,
         colsample_bytree=0.8,
+        scale_pos_weight=scale_pos_weight,
         reg_lambda=1.0,
         random_state=42,
     )
-    model.fit(X_train_balanced, y_train_balanced)
+    model.fit(X_train_balanced, y_train_balanced, sample_weight=sample_weights)
 
-    y_pred = model.predict(X_test)
     y_prob = model.predict_proba(X_test)[:, 1]
+    y_pred = (y_prob >= DEFAULT_RISK_THRESHOLD).astype(int)
 
     artifact: dict[str, Any] = {
         "model": model,
@@ -110,10 +122,10 @@ def train_and_save_model(
         },
         "metrics": {
             "roc_auc": float(roc_auc_score(y_test, y_prob)),
-            "accuracy": float(accuracy_score(y_test, y_pred)),
             "precision": float(precision_score(y_test, y_pred, zero_division=0)),
             "recall": float(recall_score(y_test, y_pred, zero_division=0)),
             "f1_score": float(f1_score(y_test, y_pred, zero_division=0)),
+            "decision_threshold": float(DEFAULT_RISK_THRESHOLD),
         },
     }
 
@@ -123,7 +135,7 @@ def train_and_save_model(
 
 
 class StrokeModelService:
-    def __init__(self, model_path: Path = DEFAULT_MODEL_PATH, risk_threshold: float = 0.5) -> None:
+    def __init__(self, model_path: Path = DEFAULT_MODEL_PATH, risk_threshold: float = DEFAULT_RISK_THRESHOLD) -> None:
         self.model_path = model_path
         self.risk_threshold = risk_threshold
         self.loaded = False
