@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Brain Stroke Risk Detector</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <script defer src="/static/app.js"></script>
+  </head>
+  <body>
+    <main class="container">
+      <header class="hero">
+        <div>
+          <h1>Brain Stroke Detection</h1>
+          <p>AI-powered clinical risk screening for stroke probability.</p>
+        </div>
+        <a class="secondary-btn" href="/dashboard">View Dashboard</a>
+      </header>
+
+      <section class="card">
+        <h2>Patient Profile</h2>
+        <form id="prediction-form" class="form-grid">
+          <label>
+            Age
+            <input type="number" id="age" min="0" max="130" step="0.1" required />
+          </label>
+
+          <label>
+            Gender
+            <select id="gender" required>
+              <option value="Female">Female</option>
+              <option value="Male">Male</option>
+              <option value="Other">Other</option>
+            </select>
+          </label>
+
+          <label>
+            Hypertension
+            <select id="hypertension" required>
+              <option value="No">No</option>
+              <option value="Yes">Yes</option>
+            </select>
+          </label>
+
+          <label>
+            Heart Disease
+            <select id="heart_disease" required>
+              <option value="No">No</option>
+              <option value="Yes">Yes</option>
+            </select>
+          </label>
+
+          <label>
+            Ever Married
+            <select id="ever_married" required>
+              <option value="No">No</option>
+              <option value="Yes">Yes</option>
+            </select>
+          </label>
+
+          <label>
+            Work Type
+            <select id="work_type" required>
+              <option value="Private">Private</option>
+              <option value="Self-employed">Self-employed</option>
+              <option value="Govt_job">Govt_job</option>
+              <option value="children">children</option>
+              <option value="Never_worked">Never_worked</option>
+            </select>
+          </label>
+
+          <label>
+            Residence Type
+            <select id="residence_type" required>
+              <option value="Urban">Urban</option>
+              <option value="Rural">Rural</option>
+            </select>
+          </label>
+
+          <label>
+            Avg Glucose Level
+            <input type="number" id="avg_glucose_level" min="0" step="0.01" required />
+          </label>
+
+          <label>
+            BMI (optional)
+            <input type="number" id="bmi" min="0" step="0.1" />
+          </label>
+
+          <label>
+            Smoking Status
+            <select id="smoking_status" required>
+              <option value="never smoked">never smoked</option>
+              <option value="formerly smoked">formerly smoked</option>
+              <option value="smokes">smokes</option>
+              <option value="Unknown">Unknown</option>
+            </select>
+          </label>
+
+          <button type="submit" class="primary-btn">Predict Stroke Risk</button>
+        </form>
+
+        <div id="loading" class="loading hidden">
+          <div class="spinner"></div>
+          <span>Analyzing patient data...</span>
+        </div>
+      </section>
+
+      <section id="result-card" class="card hidden">
+        <h2>Prediction Result</h2>
+        <p class="result-line">
+          Risk Probability: <strong id="risk-percentage">0.00%</strong>
+        </p>
+        <span id="risk-badge" class="badge">Low Risk</span>
+
+        <div class="factors">
+          <h3>Key Contributing Factors</h3>
+          <ul id="factor-list"></ul>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
